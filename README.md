@@ -8,7 +8,9 @@ The whole code coming soon
 
 <img src="./materials/Idea_of_architecture.png" style="width:2000px;height:350px"/>
 
-`Input`: pcap of a traffic
+`Input`: pcap of a traffic `Output`: Task specific output 
+
+There are four tasks 
 
 
 
