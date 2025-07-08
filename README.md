@@ -28,7 +28,21 @@ The whole code coming soon
 | **Explainable tokens** | Every traffic feature is a token, enabling fine-grained attention heat-maps.|
 
 ---
+### 📐 Key sub-modules
 
+| Module | Diagram | What it does |
+|--------|---------|--------------|
+| **T-Matrix encoder** | <img src="./materials/T_matrix.png" width="450" alt="T-Matrix diagram"> | Converts each pcap into a *multi-granular* tensor: **session**, **flow**, and **packet** features stack along a shared temporal axis. |
+| **T-Attent transformer** | <img src="./materials/model_arc.png" width="450" alt="T-Attent architecture"> | Two lightweight encoder blocks mix local (packet-level) and global (session-level) context using multi-head attention plus residual gating. |
+
+<details>
+<summary>📝  Why a separate T-Matrix & T-Attent?</summary>
+
+* **Orthogonality** – You can swap in a different backbone (e.g.\ a full-sized ViT or Performer) without rebuilding the tokenizer.  
+* **Efficiency** – T-Matrix collapses redundant per-packet stats, so the transformer sees ≤ 2 k tokens, not 10 k+.  
+* **Interpretability** – Attention heat-maps align with explicit features, letting you trace anomalous bytes/flags.
+
+</details>
 
 ## Framework
 
