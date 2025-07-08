@@ -6,6 +6,6 @@ The whole code coming soon
 
 ## Framework
 
-<img src="./datasets/overview.png" style="width:2000px;height:350px"/>
+<img src="./materials/Idea_of_architecture.png" style="width:2000px;height:350px"/>
 
 `Input`: pcap of a traffic
