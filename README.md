@@ -29,16 +29,32 @@ The whole code coming soon
 
 ---
 
-## 🗄️ Repository layout
-
 
 ## Framework
 
-<img src="./materials/Idea_of_architecture.png" style="width:2000px;height:350px"/>
+<p align="center">
+  <img src="./materials/Idea_of_architecture.png" width="100%" alt="UniNet framework diagram">
+</p>
 
-`Input`: pcap of a traffic `Output`: Task specific output 
+**Input**: raw network packet capture (`.pcap`)  
+**Output**: task-specific prediction (score, label or embedding)
 
-There are four tasks 
+UniNet’s pipeline is a single **encode-once, predict-any** flow:
+
+1. **Feature extractor** – converts the pcap into session-, flow- and packet-level features (the **T-Matrix**).  
+2. **Tokenizer** – maps every feature to a discrete token ID and positional encoding.  
+3. **T-Attent transformer** – two lightweight encoder blocks merge local (packet) and global (session) context.  
+4. **Head layer** – one of the plug-and-play heads below turns the shared embedding into the final output.
+
+| # | Down-stream task | Head name | Typical metric (default) | Entry-point script |
+|---|------------------|-----------|--------------------------|--------------------|
+| 1 | **Unsupervised anomaly detection** | Masked-Feature-Prediction (MFP) auto-encoder | AUROC / AUPRC | `scripts/train_anomaly.py` |
+| 2 | **Attack identification** (binary / multi-class) | MLP classifier | Accuracy / macro-F1 | `scripts/train_attack.py` |
+| 3 | **IoT device fingerprinting** | Contrastive classification head | Macro-F1 | `scripts/train_iot.py` |
+| 4 | **Encrypted website fingerprinting** | Triplet-ranking head | Top-1 / Top-5 accuracy | `scripts/train_ewf.py` |
+
+> *Need a new task?* Add a custom head in `uninet/models/heads/`, declare it in your YAML, and the rest of the stack stays unchanged.
+
 
 
 
