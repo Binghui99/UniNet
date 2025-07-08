@@ -1,9 +1,7 @@
-# UniNet : A Unified Multi-granular Traffic Modeling Framework for Network Security
+# UniNet : A Unified Multi-granular Traffic Modeling Framework for Network Security 🕸️🎛️  
+*A Unified Multi-Granular Traffic-Modelling Framework for Network Security*
 
 The whole code coming soon
-
-# UniNet 🕸️🎛️  
-*A Unified Multi-Granular Traffic-Modelling Framework for Network Security*
 
 [![paper](https://img.shields.io/badge/paper-IEEE%20TCCN%2025-blue)](https://doi.org/10.1109/TCCN.2025.3585170) 
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) 
