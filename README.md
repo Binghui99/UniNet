@@ -14,7 +14,7 @@ The whole code coming soon
 > 1. Unsupervised anomaly detection  
 > 2. (Binary / multi-class) attack identification  
 > 3. IoT device fingerprinting  
-> 4. Encrypted website fingerprinting :contentReference[oaicite:0]{index=0}
+> 4. Encrypted website fingerprinting
 
 ---
 
