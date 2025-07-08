@@ -32,7 +32,7 @@ The whole code coming soon
 
 | Module | Diagram | What it does |
 |--------|---------|--------------|
-| **T-Matrix encoder** | <img src="./materials/T_matrix.png" width="450" alt="T-Matrix diagram"> | Converts each pcap into a *multi-granular* tensor: **session**, **flow**, and **packet** features stack along a shared temporal axis. |
+| **T-Matrix encoder** | <img src="./materials/T-matrix.png" width="450" alt="T-Matrix diagram"> | Converts each pcap into a *multi-granular* tensor: **session**, **flow**, and **packet** features stack along a shared temporal axis. |
 | **T-Attent transformer** | <img src="./materials/model_arc.png" width="450" alt="T-Attent architecture"> | Two lightweight encoder blocks mix local (packet-level) and global (session-level) context using multi-head attention plus residual gating. |
 
 <details>
