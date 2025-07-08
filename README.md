@@ -10,6 +10,16 @@ The whole code coming soon
 ![python](https://img.shields.io/badge/python-3.9%2B-blue) 
 ![pytorch](https://img.shields.io/badge/pytorch-2.0+-red)
 
+## Framework
+
+<p align="center">
+  <img src="./materials/Idea_of_architecture.png" width="100%" alt="UniNet framework diagram">
+</p>
+
+**Input**: raw network packet capture (`.pcap`)  
+**Output**: task-specific prediction (score, label or embedding)
+
+
 > **UniNet** combines **T-Matrix** (a session + flow + packet representation) with **T-Attent** (a lightweight hierarchical transformer) and a set of plug-and-play heads, delivering state-of-the-art results on four classical security tasks:  
 > 1. Unsupervised anomaly detection  
 > 2. (Binary / multi-class) attack identification  
@@ -44,14 +54,6 @@ The whole code coming soon
 
 </details>
 
-## Framework
-
-<p align="center">
-  <img src="./materials/Idea_of_architecture.png" width="100%" alt="UniNet framework diagram">
-</p>
-
-**Input**: raw network packet capture (`.pcap`)  
-**Output**: task-specific prediction (score, label or embedding)
 
 UniNet’s pipeline is a single **encode-once, predict-any** flow:
 
