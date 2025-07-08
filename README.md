@@ -21,11 +21,11 @@ The whole code coming soon
 ## ✨ Key features
 | What | Why it matters |
 |------|----------------|
-| **Multi-granular input** | Session, flow *and* packet features are encoded together, capturing local and global context. :contentReference[oaicite:1]{index=1} |
-| **Lightweight transformer** | Only 2 encoder blocks, 10 heads, 15 k parameters – fast (< 1 μs inference on RTX 4080) yet accurate. :contentReference[oaicite:2]{index=2} |
-| **Unified heads** | Masked-Feature-Prediction (MFP), auto-encoder, and MLP heads cover unsupervised, semi- and fully-supervised scenarios. :contentReference[oaicite:3]{index=3} |
-| **Reproducible results** | Scripts to reproduce all benchmarks on CIC-IDS-2018, UNSW-IoT-2018, and DoQ+QUIC-2024. :contentReference[oaicite:4]{index=4} |
-| **Explainable tokens** | Every traffic feature is a token, enabling fine-grained attention heat-maps. :contentReference[oaicite:5]{index=5} |
+| **Multi-granular input** | Session, flow *and* packet features are encoded together, capturing local and global context.|
+| **Lightweight transformer** | Only 2 encoder blocks, 10 heads, 15 k parameters – fast (< 1 μs inference on RTX 4080) yet accurate. |
+| **Unified heads** | Masked-Feature-Prediction (MFP), auto-encoder, and MLP heads cover unsupervised, semi- and fully-supervised scenarios. |
+| **Reproducible results** | Scripts to reproduce all benchmarks on CIC-IDS-2018, UNSW-IoT-2018, and DoQ+QUIC-2024. |
+| **Explainable tokens** | Every traffic feature is a token, enabling fine-grained attention heat-maps.|
 
 ---
 
