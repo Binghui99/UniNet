@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "captures": [
+    {
+      "file": "benign_browse.pcap",
+      "sha256": "df4054be7147340ee4e072edf07ba0520acc6affb9188b7a652bd0d2dfcae0de",
+      "label": 0,
+      "description": "benign",
+      "packets": 8,
+      "sessions": 1
+    },
+    {
+      "file": "dns_burst.pcap",
+      "sha256": "55d2258287a6fa0eff38c65258c8575f45cb4223696f6581d596e3811d5a4617",
+      "label": 1,
+      "description": "synthetic_dns_burst",
+      "packets": 12,
+      "sessions": 1
+    },
+    {
+      "file": "syn_scan.pcap",
+      "sha256": "b71b1265277ef0743968c1c589f9745aff419925e50f195860fb2b2b2ec07ce3",
+      "label": 1,
+      "description": "synthetic_syn_scan",
+      "packets": 12,
+      "sessions": 1
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+session:
+  strategy: static-window
+  window_seconds: 900
+  context_mode: internal
+flow:
+  key: bidirectional-5-tuple
+  inactivity_timeout_seconds: 60
+sequence:
+  max_tokens: 256
+tokenizer:
+  method: equal-frequency
+  vocabulary_size: 1042
+  masking_ratio: 0.0

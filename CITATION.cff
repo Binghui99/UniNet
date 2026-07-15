@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use UniNet, please cite the paper."
+title: "UniNet: A Unified Multi-Granular Traffic Modeling Framework for Network Security"
+type: software
+authors:
+  - family-names: Wu
+    given-names: Binghui
+  - family-names: Divakaran
+    given-names: Dinil Mon
+  - family-names: Gurusamy
+    given-names: Mohan
+doi: 10.1109/TCCN.2025.3585170
+repository-code: "https://github.com/Binghui99/UniNet"
+license: MIT
+version: 0.1.0
+date-released: 2026-07-14
+

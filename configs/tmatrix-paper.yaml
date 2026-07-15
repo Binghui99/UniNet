@@ -1,0 +1,17 @@
+# Reference preprocessing settings used throughout the UniNet paper.
+session:
+  strategy: static-window
+  window_seconds: 900
+  context_mode: internal
+flow:
+  key: bidirectional-5-tuple
+  inactivity_timeout_seconds: 60
+sequence:
+  max_tokens: 2000
+tokenizer:
+  method: equal-frequency
+  vocabulary_size: 1042
+  mask_token_id: 1040
+  pad_token_id: 1041
+  masking_ratio: 0.0
+
