@@ -159,7 +159,7 @@ def _add_extraction_arguments(parser: argparse.ArgumentParser) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="uninet", description="UniNet PCAP and T-Matrix tools")
-    parser.add_argument("--version", action="version", version="UniNet 0.1.0")
+    parser.add_argument("--version", action="version", version="UniNet 0.2.0")
     commands = parser.add_subparsers(dest="command", required=True)
 
     pcap = commands.add_parser("pcap2tmatrix", help="Convert one or more PCAPs to tokenized T-Matrix JSON")

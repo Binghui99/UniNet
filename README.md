@@ -7,163 +7,157 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-UniNet represents traffic at three granularities - session, bidirectional flow,
-and packet - and learns a shared embedding with a lightweight hierarchical
-attention model. This repository provides an installable reference implementation,
-a reproducible **PCAP to T-Matrix** command, deterministic synthetic captures, and
-the original experiment notebooks.
-
-> The smoke data is synthetic and validates the software path only. It does not
-> reproduce the paper's benchmark numbers. See [Reproducibility](docs/reproducibility.md).
+UniNet combines a standardized multi-granular traffic representation (**T-Matrix**)
+with a lightweight hierarchical attention model (**T-Attent**). The maintained
+reproduction path is entirely Python: one standalone T-Matrix converter and four
+task scripts. Historical notebooks are retained only under `legacy/`.
 
 <p align="center">
   <img src="materials/Idea_of_architecture.png" width="100%" alt="UniNet framework">
 </p>
 
-## Quick start
+## Install
 
-No third-party package is required for preprocessing standard classic PCAP files.
+T-Matrix preprocessing has no third-party dependency. PyTorch is optional and only
+needed for model training.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
 
-# Generate three labeled synthetic captures and tokenized T-Matrices.
-uninet smoke --output-dir data/smoke
-
-# Inspect the result.
-uninet inspect data/smoke/tmatrix-smoke.json
-
-# Convert your own capture. The raw file is useful for auditing features.
-uninet pcap2tmatrix capture.pcap \
-  --output output/tmatrix.json \
-  --raw-output output/tmatrix-raw.json \
-  --tokenizer-out output/tokenizer.json
+# Add T-Attent and task training support.
+python -m pip install -e '.[model]'
 ```
 
-Run the complete smoke test:
+## One standalone T-Matrix tool
+
+The root-level [tmatrix.py](tmatrix.py) accepts different traffic representations
+and converts all of them to the same UniNet schema:
+
+| Input | Auto-detection | Result |
+|---|---|---|
+| Classic PCAP | `.pcap` | Session + flow + packet features |
+| Packet table | CSV, TSV, JSON, JSONL | Session + flow + packet features |
+| Flow table | CSV, TSV, JSON, JSONL | Session + flow features; packet segment remains empty |
+| Raw T-Matrix | `format=uninet-tmatrix-raw` | Validated and re-tokenized |
 
 ```bash
+# PCAP -> tokenized model input.
+python tmatrix.py capture.pcap \
+  -o output/capture.json \
+  --tokenizer-out output/tokenizer.json
+
+# Packet CSV -> both auditable raw features and fixed-length tokens.
+python tmatrix.py data/examples/packets.csv \
+  -o output/packets.json \
+  --representation both \
+  --raw-output output/packets.raw.json
+
+# NetFlow-style aggregate table. No fake packet records are created.
+python tmatrix.py data/examples/flows.csv \
+  -o output/flows.json \
+  --input-kind flow
+
+# Apply training quantiles to held-out data (prevents test leakage).
+python tmatrix.py test.csv \
+  -o output/test.json \
+  --input-kind packet \
+  --tokenizer-in output/train-tokenizer.json
+```
+
+After installation, `tmatrix` is equivalent to `python tmatrix.py`. Output samples
+use the paper-defined fields `input`, `true_value`, `mask_index`, `segment_label`,
+and `sequence_label`. The default is 2,000 tokens with `[MASK]=1040` and `[PAD]=1041`.
+
+See [input formats](docs/input_formats.md) and the detailed
+[T-Matrix design](docs/tmatrix.md).
+
+## Four reproducible Python tasks
+
+| Task | Python entry | UniNet head / evaluation |
+|---|---|---|
+| 1. Anomaly detection | `tasks/task1_anomaly_detection.py` | MFP pretraining + embedding autoencoder; ROC-AUC, TPR/FPR |
+| 2. Attack identification | `tasks/task2_attack_identification.py` | MLP classifier; accuracy and macro metrics |
+| 3. IoT device identification | `tasks/task3_iot_device_identification.py` | MLP classifier; accuracy and macro metrics |
+| 4. Website fingerprinting | `tasks/task4_website_fingerprinting.py` | Closed-world classification plus optional open-world TPR/FPR |
+
+Every script supports `--config`, direct CLI overrides, deterministic stratified
+splits, CPU/CUDA/MPS selection, checkpoint saving, and `--dry-run` validation.
+
+```bash
+# Validate all four included synthetic datasets without PyTorch training.
+python tasks/task1_anomaly_detection.py \
+  --config configs/tasks/task1_anomaly.json --dry-run
+python tasks/task2_attack_identification.py \
+  --config configs/tasks/task2_attack.json --dry-run
+python tasks/task3_iot_device_identification.py \
+  --config configs/tasks/task3_iot.json --dry-run
+python tasks/task4_website_fingerprinting.py \
+  --config configs/tasks/task4_website.json --dry-run
+
+# Actual training (remove --dry-run).
+python tasks/task3_iot_device_identification.py \
+  --dataset output/iot-train.json \
+  --output-dir output/task3 \
+  --epochs 30
+
+# Open-world website evaluation with an explicit unknown class.
+python tasks/task4_website_fingerprinting.py \
+  --dataset output/websites.json \
+  --unknown-label unknown \
+  --output-dir output/task4
+```
+
+Training writes `model.pt` and `metrics.json`. Task details and data-leakage
+considerations are documented in [task recipes](docs/tasks.md).
+
+## Smoke data
+
+```bash
+# PCAP -> T-Matrix smoke fixtures.
+uninet smoke --output-dir data/smoke
+
+# Four tiny tokenized task datasets.
+python scripts/generate_task_smoke_data.py
+
+# Full dependency-free validation.
 python -m unittest discover -s tests -v
 ```
 
-## PCAP to T-Matrix
+The smoke datasets are synthetic software fixtures, not scientific benchmarks.
+They must not be used to claim detection or classification performance.
 
-The conversion pipeline follows the paper's semantic structure:
-
-1. Decode Ethernet/SLL/raw-IP packet metadata without using payload contents as features.
-2. Choose a contextual endpoint (an internal IP by default).
-3. Group packets into static 15-minute sessions.
-4. Canonicalize both directions of a 5-tuple into one flow, expiring it after
-   60 seconds of inactivity.
-5. Extract session features, eight flow features, and six packet features.
-6. Equal-frequency-bin continuous fields and emit fixed-length model inputs.
+## Repository structure
 
 ```text
-session features (segment 2)
-  flow features (segment 1)
-    packet features (segment 0)
-    packet features (segment 0)
-  flow features (segment 1)
-    ...
+tmatrix.py                         standalone multi-input standardizer
+tasks/
+  task1_anomaly_detection.py      unsupervised anomaly pipeline
+  task2_attack_identification.py  attack classifier
+  task3_iot_device_identification.py
+  task4_website_fingerprinting.py
+src/uninet/                        maintained implementation
+configs/tasks/                     four runnable task configs
+data/examples/                     packet and flow input examples
+data/smoke/                        deterministic smoke fixtures
+tests/                             converter, schema, task and model tests
+docs/                              formats and reproducibility guidance
+legacy/                            original notebooks/scripts (not primary entry points)
 ```
 
-Every tokenized sample contains the five paper-defined fields:
-`input`, `true_value`, `mask_index`, `segment_label`, and `sequence_label`.
-Metadata such as feature names and the original sequence length is retained for
-auditing. Defaults are a 2,000-token sequence and vocabulary IDs 0-1041, with
-`[MASK]=1040` and `[PAD]=1041`.
+## Capture support and safety
 
-For large corpora, use a `.jsonl` output path (or `--format jsonl`) so each sample
-is an independent line:
-
-```bash
-uninet pcap2tmatrix captures/*.pcap -o train.jsonl \
-  --format jsonl --tokenizer-out train-tokenizer.json
-```
-
-Useful capture modes:
-
-```bash
-# Observe one known endpoint only.
-uninet pcap2tmatrix traffic.pcap -o host.json \
-  --context-mode key-ip --key-ip 192.168.1.42
-
-# Declare site-specific internal ranges (repeat the option as needed).
-uninet pcap2tmatrix traffic.pcap -o site.json \
-  --internal-network 10.20.0.0/16 --internal-network 2001:db8:1234::/48
-
-# Pretraining-style masked-feature input.
-uninet pcap2tmatrix traffic.pcap -o masked.json --mask-ratio 0.4 --seed 7
-
-# Reuse training-set quantiles for a held-out capture (important).
-uninet pcap2tmatrix test.pcap -o test.json --tokenizer-in train-tokenizer.json
-```
-
-The built-in reader supports classic PCAP with Ethernet (including VLAN), Linux
-cooked v1, or raw IPv4/IPv6 packets. For PCAPNG, use Wireshark's `editcap` first:
+The built-in decoder supports classic PCAP with Ethernet/VLAN, Linux SLL v1, or
+raw IPv4/IPv6. Convert PCAPNG first:
 
 ```bash
 editcap -F pcap input.pcapng output.pcap
 ```
 
-Full design decisions and limitations are in [T-Matrix tool](docs/tmatrix.md).
-Task-specific orchestration is summarized in [Task recipes](docs/tasks.md).
-
-## T-Attent
-
-Install the optional PyTorch dependency to use the model:
-
-```bash
-python -m pip install -e '.[model]'
-```
-
-```python
-import torch
-from uninet.model import (
-    ClassificationHead,
-    EmbeddingAutoencoder,
-    MaskedFeatureHead,
-    TAttent,
-)
-
-backbone = TAttent()  # paper defaults: d=10, 10 heads, 2 encoder layers
-tokens = torch.randint(0, 1042, (4, 2000))
-segments = torch.zeros_like(tokens)
-embedding = backbone(tokens, segments)
-logits = ClassificationHead(embedding_dim=10, num_classes=5)(embedding)
-
-# MFP predicts vocabulary IDs at masked positions from per-token hidden states.
-mfp_logits = MaskedFeatureHead(10)(backbone.encode(tokens, segments))
-
-# Anomaly detection scores reconstruction error in the learned embedding.
-scores = EmbeddingAutoencoder(10, bottleneck_dim=4).anomaly_score(embedding)
-```
-
-The package intentionally separates preprocessing from the model so researchers
-can use T-Matrix with a different backbone or use T-Attent with an adapted schema.
-
-## Repository map
-
-```text
-src/uninet/                  maintained library and CLI
-  pcap.py                    streaming capture decoder
-  tmatrix.py                 grouping and multi-granular features
-  tokenizer.py               quantile vocabulary and five-field samples
-  model.py                   optional PyTorch T-Attent reference
-scripts/                     direct utility entry points
-configs/                     documented paper/smoke defaults
-data/smoke/                  deterministic generated fixtures
-tests/                       dependency-free unit and integration tests
-docs/                        data, design, and reproduction guides
-Task1_Anomaly detection/     original research notebooks (legacy)
-Task2_Attack_identification/ original research notebooks (legacy)
-Task4-Website-fingerprinting/original research scripts (legacy)
-```
-
-The legacy artifacts are retained for provenance. They contain environment-specific
-paths and are not the supported quick-start interface.
+PCAPs may contain sensitive communications and identifiers. Obtain authorization,
+minimize collection, anonymize before sharing, and never commit private captures.
+See [SECURITY.md](SECURITY.md).
 
 ## Paper and citation
 
@@ -184,14 +178,5 @@ doi: [10.1109/TCCN.2025.3585170](https://doi.org/10.1109/TCCN.2025.3585170).
 }
 ```
 
-## Responsible use
-
-PCAPs can contain personal data, credentials, internal addresses, and third-party
-communications. Obtain authorization, minimize collection, and anonymize captures
-before sharing them. Synthetic fixtures in this repository contain documentation-only
-addresses and no real traffic. Please report vulnerabilities via [SECURITY.md](SECURITY.md).
-
-## License
-
-Code is released under the [MIT License](LICENSE). Dataset providers retain their
-own terms; this license does not grant redistribution rights for external datasets.
+Code is released under the [MIT License](LICENSE). External datasets retain their
+own licenses and redistribution terms.

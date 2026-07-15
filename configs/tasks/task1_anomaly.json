@@ -1,0 +1,8 @@
+{
+  "dataset": "data/smoke/tasks/task1_anomaly.json",
+  "benign_label": 0,
+  "mask_ratio": 0.4,
+  "threshold_percentile": 95,
+  "pretrain_epochs": 20,
+  "autoencoder_epochs": 30
+}

@@ -1,0 +1,4 @@
+{
+  "dataset": "data/smoke/tasks/task3_iot.json",
+  "epochs": 30
+}

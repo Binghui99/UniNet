@@ -1,0 +1,5 @@
+{
+  "dataset": "data/smoke/tasks/task4_website.json",
+  "unknown_label": "unknown",
+  "epochs": 30
+}

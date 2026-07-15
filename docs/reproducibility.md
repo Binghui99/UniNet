@@ -5,10 +5,10 @@
 1. **Software smoke test** - included and dependency-free. It verifies PCAP parsing,
    multi-granular extraction, tokenization, masking, and fixed-length serialization.
 2. **Method reproduction** - use your authorized PCAPs, freeze split manifests, fit
-   quantiles only on training data, and train the provided T-Attent implementation.
+   quantiles only on training data, and train one of the four Python task scripts.
 3. **Paper benchmark reproduction** - requires the paper datasets and their original
    preprocessing/splits. The retained legacy notebooks document research history but
-   still need dataset-specific path cleanup before exact reruns.
+   are not the maintained execution path.
 
 ## Minimum experiment record
 
@@ -34,4 +34,3 @@ Optional model import check:
 python -m pip install -e '.[model]'
 python -c 'from uninet.model import TAttent; print(TAttent())'
 ```
-

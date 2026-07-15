@@ -1,37 +1,70 @@
-# UniNet task recipes
+# Four task pipelines
 
-The shared T-Attent backbone produces an embedding; task behavior comes from the
-head and the sample granularity. These recipes describe the paper's orchestration,
-not downloadable benchmark splits.
+All maintained task entry points are ordinary Python scripts under `tasks/`. They
+consume tokenized T-Matrix JSON or JSONL and save `model.pt` plus `metrics.json`.
+Run `--dry-run` first to validate labels, token lengths and deterministic splits
+without importing PyTorch.
 
-## 1. Unsupervised anomaly detection
+## Task 1: unsupervised anomaly detection
 
-Create session samples, pretrain T-Attent on benign traffic with masked feature
-prediction, remove the MFP head, and train the symmetric embedding autoencoder on
-benign embeddings. Select the reconstruction-error percentile threshold on benign
-validation data. Report ROC-AUC and TPR at operationally low FPR values.
+```bash
+python tasks/task1_anomaly_detection.py \
+  --dataset train.json \
+  --benign-label 0 \
+  --mask-ratio 0.4 \
+  --threshold-percentile 95
+```
 
-## 2. Attack identification
+The backbone first learns benign context through masked feature prediction. A
+two-layer symmetric autoencoder then reconstructs benign T-Attent embeddings.
+The threshold is selected from held-out benign reconstruction scores; anomalous
+samples are never used to fit it. Output metrics include ROC-AUC, TPR and FPR.
 
-Create one sample per bidirectional flow (flow features followed by its packets) and
-use the two-layer classification head with cross-entropy. Freeze a class mapping and
-split by capture/day or host where possible to avoid near-duplicate leakage. Report
-macro-F1 alongside accuracy and low-FPR detection behavior.
+## Task 2: attack identification
 
-## 3. IoT device identification
+```bash
+python tasks/task2_attack_identification.py --dataset attacks.json
+```
 
-Use MAC/device metadata only to assign labels before anonymization; do not feed raw
-identifiers to the model. Construct endpoint sessions and preserve incomplete flows
-created by time-window boundaries. Evaluate macro metrics and per-device results,
-especially for minority devices.
+This supports binary or multiclass labels with the paper's two-layer classification
+head. It reports accuracy, macro precision, macro recall and macro F1. Split by
+capture day, host, or campaign before T-Matrix conversion when those groups could
+otherwise leak across random splits.
 
-## 4. Encrypted website fingerprinting
+## Task 3: IoT device identification
 
-Do not inspect decrypted content. Combine aggregate session behavior with packet
-metadata such as sizes, directions, and IATs. In open-world evaluation, keep unknown
-sites disjoint between training and test and report TPR at fixed FPR. Never tune the
-decision threshold on the final test set.
+```bash
+python tasks/task3_iot_device_identification.py --dataset devices.json
+```
 
-The maintained model heads live in `src/uninet/model.py`. Dataset-specific splits and
-labels remain the researcher's responsibility because the original datasets have
-separate distribution terms.
+This is the complete fourth repo component that was missing from the original code
+snapshot. Use endpoint sessions and labels derived from an external inventory. Raw
+MAC/IP identity must not be included as a model feature. Report per-device results
+in addition to macro metrics for imbalanced deployments.
+
+## Task 4: encrypted website fingerprinting
+
+```bash
+python tasks/task4_website_fingerprinting.py \
+  --dataset websites.json \
+  --unknown-label unknown
+```
+
+Without `--unknown-label`, this is closed-world multiclass classification. With an
+unknown class, it additionally reports monitored-vs-unknown TPR and FPR. Unknown
+sites must remain disjoint between training and test; do not tune the threshold or
+class mapping on the final test set.
+
+## Configuration and overrides
+
+Each task has a JSON config under `configs/tasks/`:
+
+```bash
+python tasks/task3_iot_device_identification.py \
+  --config configs/tasks/task3_iot.json \
+  --epochs 5
+```
+
+Command-line values override config defaults. Random seeds, split sizes, model
+dimensions, optimizer settings, device selection and output directories are exposed
+through `--help`.

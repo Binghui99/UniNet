@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uninet-security"
-version = "0.1.0"
-description = "UniNet multi-granular traffic modeling and PCAP-to-T-Matrix tooling"
+version = "0.2.0"
+description = "UniNet multi-input T-Matrix standardization and four network-security task pipelines"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -26,6 +26,7 @@ dev = ["pytest>=7", "ruff>=0.4"]
 
 [project.scripts]
 uninet = "uninet.cli:main"
+tmatrix = "uninet.standardize:main"
 
 [project.urls]
 Paper = "https://doi.org/10.1109/TCCN.2025.3585170"
@@ -40,4 +41,3 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py39"
-

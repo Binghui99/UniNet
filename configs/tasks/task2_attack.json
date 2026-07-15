@@ -1,0 +1,4 @@
+{
+  "dataset": "data/smoke/tasks/task2_attack.json",
+  "epochs": 30
+}

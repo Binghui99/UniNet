@@ -154,6 +154,11 @@ class TMatrixExtractor:
         # Public-to-public traces still remain usable; source is the observation context.
         return packet.src_ip
 
+    def context_for(self, packet: Packet) -> Optional[str]:
+        """Return the configured session context for an adapter-provided record."""
+
+        return self._context(packet)
+
     def _is_internal(self, value: str) -> bool:
         address = ipaddress.ip_address(value)
         return any(address in network for network in self._networks if address.version == network.version)
@@ -260,16 +265,23 @@ def extract_session_features(
     packets = [packet for flow in session.flows for packet in flow.packets]
     durations = [features["duration"] for features in flow_features]
     sizes = [features["byte_count"] for features in flow_features]
-    service_ports = {
+    endpoints = [flow.key for flow in session.flows]
+    src_ips = {packet.src_ip for packet in packets} or {key[0] for key in endpoints}
+    dst_ips = {packet.dst_ip for packet in packets} or {key[2] for key in endpoints}
+    observed_ports = [
         port
         for packet in packets
         for port in (packet.src_port, packet.dst_port)
+    ] or [port for key in endpoints for port in (key[1], key[3])]
+    service_ports = {
+        port
+        for port in observed_ports
         if 1 <= port <= 1024 or port in {3306, 8080}
     }
     return {
         "flow_count": float(len(session.flows)),
-        "unique_src_ips": float(len({packet.src_ip for packet in packets})),
-        "unique_dst_ips": float(len({packet.dst_ip for packet in packets})),
+        "unique_src_ips": float(len(src_ips)),
+        "unique_dst_ips": float(len(dst_ips)),
         "unique_service_ports": float(len(service_ports)),
         "mean_flow_duration": _mean(durations),
         "std_flow_duration": _std(durations),

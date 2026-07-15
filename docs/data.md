@@ -13,6 +13,11 @@ Run `uninet smoke --output-dir data/smoke` to deterministically create:
 These traces contain no real payload or user data. Labels are illustrative and are
 not evidence that this tiny dataset can train or evaluate a security detector.
 
+`data/smoke/tasks/` additionally contains four deterministic tokenized datasets,
+one for each Python task entry. Regenerate them with
+`python scripts/generate_task_smoke_data.py`. They validate loaders, splits and
+one-epoch CI training only; their metrics have no scientific meaning.
+
 ## External research datasets
 
 The paper evaluates CIC-IDS-2018, UNSW-IoT-2018, and DoQ-2024. They are not bundled:
@@ -29,4 +34,3 @@ data/processed/<dataset>/<preprocessing-version>/
 Never commit sensitive PCAPs. When sharing a processed artifact, publish the exact
 split manifest, T-Matrix configuration, fitted training tokenizer, class mapping,
 source checksums, package version, and random seed.
-

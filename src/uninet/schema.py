@@ -55,6 +55,38 @@ class TMatrix:
         ]
         return result
 
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "TMatrix":
+        """Restore a raw T-Matrix document without inventing packet records."""
+
+        session_payload = payload["session"]
+        flows = [
+            Flow(key=tuple(flow["key"]))
+            for flow in session_payload.get("flows", [])
+        ]
+        session = Session(
+            session_id=session_payload["session_id"],
+            context_ip=session_payload["context_ip"],
+            window_start=float(session_payload["window_start"]),
+            window_end=float(session_payload["window_end"]),
+            flows=flows,
+            label=session_payload.get("label"),
+        )
+        return cls(
+            session=session,
+            session_features={key: float(value) for key, value in payload["session_features"].items()},
+            flow_features=[
+                {key: float(value) for key, value in row.items()}
+                for row in payload["flow_features"]
+            ],
+            packet_features=[
+                [{key: float(value) for key, value in row.items()} for row in flow]
+                for flow in payload["packet_features"]
+            ],
+            source=payload.get("source", ""),
+            schema_version=payload.get("schema_version", "1.0"),
+        )
+
 
 @dataclass(frozen=True)
 class Feature:
@@ -62,4 +94,3 @@ class Feature:
     value: float
     segment: int
     kind: str
-
